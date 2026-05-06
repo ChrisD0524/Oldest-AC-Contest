@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="AC Contest" />
+  <title>Oldest AC Contest · Art Plumbing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --orange: #FF6B00; --orange-light: #ff8c42;
+      --dark: #1A1A2E; --blue: #0F3460;
+      --gold: #FFD700; --green-dark: #1a4a00; --green: #2d7a00;
+    }
+    html, body { height: 100%; background: var(--dark); }
+    body { font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+    input, select, button { font-family: 'DM Sans', sans-serif; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes pop { 0%{transform:scale(0.7);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+    .pop { animation: pop 0.5s cubic-bezier(.34,1.56,.64,1) both; }
+
+    #root { max-width: 480px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+    #bottom-nav {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      z-index: 200; background: rgba(15,15,35,0.97); border-radius: 50px; padding: 5px;
+      display: flex; border: 1px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4); backdrop-filter: blur(12px);
+    }
+    #bottom-nav button {
+      background: transparent; color: rgba(255,255,255,0.45); border: none;
+      border-radius: 50px; padding: 9px 24px; font-size: 12px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all 0.2s ease;
+    }
+    #bottom-nav button.active { background: var(--orange); color: white; }
+
+    .field-label {
+      display: block; color: rgba(255,255,255,0.55); font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px;
+    }
+    .field-input {
+      width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px; padding: 14px 16px; color: white; font-size: 15px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .field-input:focus { border-color: rgba(255,107,0,0.6); background: rgba(255,255,255,0.11); }
+    .field-input::placeholder { color: rgba(255,255,255,0.25); }
+    select.field-input option { background: #1a1a2e; color: white; }
+
+    .card {
+      background: rgba(255,255,255,0.06); border-radius: 18px;
+      padding: 22px 18px; border: 1px solid rgba(255,255,255,0.09); margin-bottom: 14px;
+    }
+    .section-label {
+      color: var(--orange); font-size: 10px; font-weight: 700;
+      letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .btn-primary {
+      width: 100%; background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      color: white; border: none; border-radius: 14px; padding: 18px;
+      font-size: 16px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s; -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: rgba(255,107,0,0.3); cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1); color: white;
+      border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; padding: 14px 32px;
+      font-size: 14px; font-weight: 600; cursor: pointer; letter-spacing: 0.5px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mode-toggle { display: flex; gap: 8px; margin-bottom: 20px; }
+    .mode-btn {
+      flex: 1; padding: 12px 8px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mode-btn.active { background: var(--orange); color: white; border: none; }
+    .mode-btn.inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.12); }
+
+    .decode-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .decode-row .field-input { flex: 1; }
+    .btn-decode {
+      background: var(--orange); color: white; border: none; border-radius: 10px;
+      padding: 0 18px; font-size: 13px; font-weight: 700; cursor: pointer;
+      white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent;
+    }
+    .btn-decode:disabled { background: rgba(255,107,0,0.3); cursor: not-allowed; }
+
+    .decode-success {
+      background: rgba(0,200,80,0.12); border: 1px solid rgba(0,200,80,0.3);
+      border-radius: 12px; padding: 16px; margin-top: 10px;
+    }
+    .decode-error {
+      background: rgba(255,60,60,0.1); border: 1px solid rgba(255,60,60,0.25);
+      border-radius: 12px; padding: 14px 16px; margin-top: 10px;
+    }
+    .leader-banner {
+      background: rgba(255,215,0,0.09); border: 1px solid rgba(255,215,0,0.28);
+      border-radius: 14px; padding: 14px 18px; margin-bottom: 22px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .no-entries-banner {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px; padding: 14px 18px; margin-bottom: 22px;
+      text-align: center; color: rgba(255,255,255,0.3); font-size: 13px;
+    }
+    .result-screen {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .result-card { border-radius: 20px; padding: 32px 28px; text-align: center; width: 100%; max-width: 400px; }
+    .result-winner { background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.22); }
+    .result-loser { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); }
+    .year-badge { background: var(--gold); border-radius: 12px; padding: 16px 24px; margin: 0 auto 16px; }
+    .coupon-box {
+      background: linear-gradient(135deg, var(--orange), var(--orange-light));
+      border-radius: 14px; padding: 20px 24px; margin-top: 16px;
+    }
+    .compare-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 18px; }
+    .compare-box { border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 110px; }
+
+    /* Admin */
+    .admin-header { background: linear-gradient(135deg, var(--dark), var(--blue)); padding: 28px 24px; color: white; }
+    .admin-body { padding: 22px 20px 100px; background: #f4f1ed; min-height: calc(100vh - 120px); }
+    .leader-card-admin {
+      background: linear-gradient(135deg, var(--green-dark), var(--green));
+      border-radius: 18px; padding: 24px; margin-bottom: 22px; color: white;
+    }
+    .entry-row {
+      background: white; border-radius: 14px; padding: 16px 18px; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 14px; border: 1px solid #e6e2dc;
+    }
+    .entry-row.leader { border: 2px solid var(--green); }
+    .entry-badge {
+      border-radius: 10px; width: 48px; height: 48px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-weight: 900; color: white;
+    }
+    .stat-grid { display: flex; gap: 16px; flex-wrap: wrap; }
+    .stat-label { color: rgba(255,255,255,0.4); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; }
+    .stat-value { font-size: 14px; font-weight: 700; }
+
+    /* Loading spinner */
+    .spinner {
+      width: 40px; height: 40px; border: 3px solid rgba(255,107,0,0.2);
+      border-top-color: var(--orange); border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin: 0 auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Admin login */
+    .login-screen {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 24px;
+      background: linear-gradient(160deg, var(--dark) 0%, var(--blue) 100%);
+    }
+    .login-card {
+      background: rgba(255,255,255,0.08); border-radius: 20px; padding: 36px 28px;
+      width: 100%; max-width: 360px; border: 1px solid rgba(255,255,255,0.12); text-align: center;
+    }
+    .login-error {
+      background: rgba(255,60,60,0.15); border: 1px solid rgba(255,60,60,0.3);
+      border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #ff8080;
+      margin-bottom: 14px;
+    }
+
+    /* Sync indicator */
+    .sync-dot {
+      display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+      background: #4dff91; margin-right: 6px; vertical-align: middle;
+    }
+    .sync-dot.syncing { background: var(--orange); animation: pulse 1s infinite; }
+    .sync-dot.error { background: #ff6060; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  </style>
+</head>
+<body>
+<div id="root">
+  <div id="app"></div>
+  <nav id="bottom-nav">
+    <button id="nav-field" class="active" onclick="showView('field')">⚡ DC View</button>
+    <button id="nav-admin" onclick="showView('admin')">📊 Admin</button>
+  </nav>
+</div>
+
+<script>
+const ADMIN_PASSWORD = '4151';
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BRANDS = ['Carrier / Bryant','Lennox','Trane / American Standard','Rheem / Ruud','York / Coleman','Goodman / Amana','Other / Not Sure'];
+const POLL_INTERVAL = 8000; // refresh entries every 8 seconds
+
+let state = {
+  view: 'field',
+  entries: [],
+  loaded: false,
+  syncStatus: 'ok', // ok | syncing | error
+  adminUnlocked: false,
+  adminPasswordInput: '',
+  adminPasswordError: false,
+  dcName: '',
+  customer: '', address: '',
+  yearMode: 'manual', manualYear: '',
+  brand: '', serial: '',
+  decoded: null, decodeError: '',
+  submitting: false,
+  result: null,
+};
+
+let pollTimer = null;
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function fetchEntries() {
+  try {
+    const res = await fetch('/api/entries');
+    if (!res.ok) throw new Error('fetch failed');
+    return await res.json();
+  } catch { return null; }
+}
+
+async function postEntry(entry) {
+  const res = await fetch('/api/entries', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  });
+  if (!res.ok) throw new Error('post failed');
+  return await res.json();
+}
+
+async function deleteAllEntries() {
+  const res = await fetch('/api/entries', { method: 'DELETE' });
+  if (!res.ok) throw new Error('delete failed');
+}
+
+async function refreshEntries(silent) {
+  if (!silent) { state.syncStatus = 'syncing'; render(); }
+  const data = await fetchEntries();
+  if (data) {
+    state.entries = data;
+    state.syncStatus = 'ok';
+    state.loaded = true;
+  } else {
+    state.syncStatus = 'error';
+  }
+  render();
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(() => refreshEntries(true), POLL_INTERVAL);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function getOldest(entries) {
+  if (!entries.length) return null;
+  return entries.reduce((oldest, e) => {
+    if (!oldest) return e;
+    const oy = parseInt(oldest.year)*100+(parseInt(oldest.month)||6);
+    const ey = parseInt(e.year)*100+(parseInt(e.month)||6);
+    return ey < oy ? e : oldest;
+  });
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'});
+}
+function fmtAge(entry) {
+  const mo = entry.month ? MONTH_NAMES[parseInt(entry.month)-1]+' ' : '';
+  return mo + entry.year;
+}
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Serial Decoder ────────────────────────────────────────────────────────────
+function decodeSerial(brand, serial) {
+  if (!serial || serial.length < 4) return null;
+  const s = serial.trim().toUpperCase();
+  try {
+    if (brand === 'Carrier / Bryant') {
+      if (/^\d{4}/.test(s)) {
+        const week=parseInt(s.slice(0,2)), yr2=parseInt(s.slice(2,4));
+        if (week>=1&&week<=53&&yr2>=60){const year=1900+yr2;return{year,month:Math.min(12,Math.ceil(week/4.33))|0,note:`Week ${week} of ${year}`};}
+        if (week>=1&&week<=53&&yr2<=30){const year=2000+yr2;return{year,month:Math.min(12,Math.ceil(week/4.33))|0,note:`Week ${week} of ${year}`};}
+      }
+      if (/^\d{2}(9[0-9]|[0-2]\d)/.test(s)) {
+        const mo=parseInt(s.slice(0,2)),yr2=parseInt(s.slice(2,4));
+        if(mo>=1&&mo<=12){const year=yr2>=60?1900+yr2:2000+yr2;return{year,month:mo,note:`${MONTH_NAMES[mo-1]} ${year}`};}
+      }
+    }
+    if (brand==='Lennox') {
+      const dm={G:1970,H:1980,J:1990,L:2000,M:2010,N:2020};
+      if(dm[s[0]]!==undefined){const yd=parseInt(s[1]),wk=parseInt(s.slice(2,4));if(!isNaN(yd)&&wk>=1&&wk<=53){const year=dm[s[0]]+yd;return{year,month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${year}`};}}
+      if(/^\d{4}/.test(s)){const mo=parseInt(s.slice(0,2)),yr2=parseInt(s.slice(2,4));if(mo>=1&&mo<=12&&yr2>=80){return{year:1900+yr2,month:mo,note:`${MONTH_NAMES[mo-1]} ${1900+yr2}`};}}
+    }
+    if (brand==='Trane / American Standard') {
+      if(s.length>=6){
+        const y2a=parseInt(s.slice(2,4)),wka=parseInt(s.slice(4,6));
+        if(y2a>=70&&y2a<=99&&wka>=1&&wka<=53)return{year:1900+y2a,month:Math.min(12,Math.ceil(wka/4.33))|0,note:`Week ${wka} of ${1900+y2a}`};
+        if(y2a>=0&&y2a<=30&&wka>=1&&wka<=53)return{year:2000+y2a,month:Math.min(12,Math.ceil(wka/4.33))|0,note:`Week ${wka} of ${2000+y2a}`};
+        const y2b=parseInt(s.slice(0,2)),wkb=parseInt(s.slice(2,4));
+        if(y2b>=70&&y2b<=99&&wkb>=1&&wkb<=53)return{year:1900+y2b,month:Math.min(12,Math.ceil(wkb/4.33))|0,note:`Week ${wkb} of ${1900+y2b}`};
+      }
+    }
+    if (brand==='Rheem / Ruud') {
+      if(/^[A-Z]\d{4}/.test(s)){const yr2=parseInt(s.slice(1,3)),wk=parseInt(s.slice(3,5));if(wk>=1&&wk<=53){const year=yr2>=70?1900+yr2:2000+yr2;return{year,month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${year}`};}}
+      if(/^[A-Z]{2}\d{4}/.test(s)){const yr2=parseInt(s.slice(2,4)),wk=parseInt(s.slice(4,6));if(wk>=1&&wk<=53){const year=yr2>=70?1900+yr2:2000+yr2;return{year,month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${year}`};}}
+    }
+    if (brand==='York / Coleman') {
+      const letters='ABCDEFGHJKLMNPRSTVWXY',ym={};
+      for(let i=0;i<letters.length;i++)ym[letters[i]]=1971+i;
+      const tryY=(pos)=>{const ch=s[pos];if(ch&&ym[ch]){const wk=parseInt(s.slice(pos+1,pos+3));if(wk>=1&&wk<=53)return{year:ym[ch],month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${ym[ch]}`};return{year:ym[ch],month:null,note:`York year code: ${ch}`};}return null;};
+      return tryY(0)||tryY(4)||null;
+    }
+    if (brand==='Goodman / Amana') {
+      if(/^[A-Z]\d{4}/.test(s)){const yr2=parseInt(s.slice(1,3)),wk=parseInt(s.slice(3,5));if(wk>=1&&wk<=53){const year=yr2>=70?1900+yr2:2000+yr2;return{year,month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${year}`};}}
+      if(/^\d{4}/.test(s)){const yr2=parseInt(s.slice(0,2)),wk=parseInt(s.slice(2,4));if(wk>=1&&wk<=53){const year=yr2>=70?1900+yr2:2000+yr2;return{year,month:Math.min(12,Math.ceil(wk/4.33))|0,note:`Week ${wk} of ${year}`};}}
+    }
+  } catch(e){}
+  return null;
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render() {
+  const app = document.getElementById('app');
+  const navField = document.getElementById('nav-field');
+  const navAdmin = document.getElementById('nav-admin');
+  navField.className = state.view==='field' ? 'active' : '';
+  navAdmin.className = state.view==='admin' ? 'active' : '';
+
+  if (!state.loaded) {
+    app.innerHTML = `<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:linear-gradient(160deg,var(--dark),var(--blue))">
+      <div class="spinner"></div>
+      <div style="color:rgba(255,255,255,0.4);font-size:13px">Loading contest data...</div>
+    </div>`;
+    return;
+  }
+
+  if (state.view==='field') {
+    app.innerHTML = state.result ? renderResult() : renderField();
+  } else {
+    app.innerHTML = state.adminUnlocked ? renderAdmin() : renderAdminLogin();
+  }
+  attachEvents();
+}
+
+function showView(v) {
+  state.view = v;
+  if (v==='field') state.result = null;
+  render();
+}
+
+// ── Sync indicator ────────────────────────────────────────────────────────────
+function syncIndicatorHtml() {
+  const cls = state.syncStatus==='ok' ? '' : state.syncStatus==='syncing' ? 'syncing' : 'error';
+  const label = state.syncStatus==='ok' ? 'Live' : state.syncStatus==='syncing' ? 'Syncing...' : 'Offline';
+  return `<span class="sync-dot ${cls}"></span><span style="color:rgba(255,255,255,0.35);font-size:11px">${label}</span>`;
+}
+
+// ── Admin Login ───────────────────────────────────────────────────────────────
+function renderAdminLogin() {
+  return `
+  <div class="login-screen">
+    <div class="login-card fade-up">
+      <div style="font-size:40px;margin-bottom:16px">🔒</div>
+      <div style="color:var(--orange);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:8px">Admin Access</div>
+      <div style="color:white;font-size:20px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:6px">Contest Admin</div>
+      <div style="color:rgba(255,255,255,0.4);font-size:13px;margin-bottom:28px">Art Plumbing, AC & Electric</div>
+      ${state.adminPasswordError ? `<div class="login-error">Incorrect password. Please try again.</div>` : ''}
+      <div style="margin-bottom:16px">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" id="adminPwInput" value="${esc(state.adminPasswordInput)}"
+          placeholder="Enter admin password" autocomplete="current-password"
+          style="letter-spacing:4px;font-size:18px;text-align:center" />
+      </div>
+      <button class="btn-primary" id="adminLoginBtn">Unlock Admin →</button>
+    </div>
+  </div>`;
+}
+
+// ── Field View ────────────────────────────────────────────────────────────────
+function renderField() {
+  const oldest = getOldest(state.entries);
+  const leaderHtml = oldest
+    ? `<div class="leader-banner">
+        <div style="font-size:28px">🏆</div>
+        <div>
+          <div style="color:var(--gold);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px">Current Leader to Beat</div>
+          <div style="color:white;font-size:15px;font-weight:700">${esc(oldest.customer)} — <span style="color:var(--gold)">${fmtAge(oldest)}</span></div>
+          <div style="color:rgba(255,255,255,0.4);font-size:11px">${state.entries.length} total ${state.entries.length===1?'entry':'entries'} · ${syncIndicatorHtml()}</div>
+        </div>
+       </div>`
+    : `<div class="no-entries-banner">No entries yet — be the first! 🌟<br><span style="font-size:11px;opacity:0.6">${syncIndicatorHtml()}</span></div>`;
+
+  const brandOptions = BRANDS.map(b=>`<option value="${esc(b)}" ${state.brand===b?'selected':''}>${esc(b)}</option>`).join('');
+
+  const decodeResultHtml = state.decoded
+    ? `<div class="decode-success">
+        <div style="color:#4dff91;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px">✓ Decoded Successfully</div>
+        <div style="color:white;font-size:28px;font-weight:800;margin-bottom:2px">${state.decoded.month?MONTH_NAMES[state.decoded.month-1]+' ':''}${state.decoded.year}</div>
+        <div style="color:rgba(255,255,255,0.45);font-size:12px">${esc(state.decoded.note)} · ${esc(state.brand)}</div>
+        <div style="color:rgba(255,255,255,0.28);font-size:11px;margin-top:8px;line-height:1.5">If this looks wrong, switch to "Enter Year" to override manually.</div>
+       </div>`
+    : state.decodeError
+    ? `<div class="decode-error"><div style="color:#ff8080;font-size:12px;font-weight:600;line-height:1.6">${esc(state.decodeError)}</div></div>`
+    : '';
+
+  const yearSection = state.yearMode==='manual'
+    ? `<div>
+        <label class="field-label">Year on Nameplate</label>
+        <input class="field-input" type="number" id="manualYear" min="1960" max="2015" value="${esc(state.manualYear)}" placeholder="e.g. 1988" inputmode="numeric" />
+        <div style="color:rgba(255,255,255,0.28);font-size:11px;margin-top:6px">Found on the unit nameplate sticker</div>
+       </div>`
+    : `<div>
+        <label class="field-label">AC Brand</label>
+        <select class="field-input" id="brandSelect" style="margin-bottom:14px;color:${state.brand?'white':'rgba(255,255,255,0.3)'}">
+          <option value="">Select brand...</option>${brandOptions}
+        </select>
+        <label class="field-label">Serial Number</label>
+        <div class="decode-row">
+          <input class="field-input" type="text" id="serialInput" value="${esc(state.serial)}" placeholder="e.g. 4802F12345" autocomplete="off" autocorrect="off" spellcheck="false" />
+          <button class="btn-decode" id="decodeBtn" ${!state.brand||!state.serial?'disabled':''}>Decode</button>
+        </div>
+        <div style="color:rgba(255,255,255,0.22);font-size:11px;margin-bottom:10px;line-height:1.5">Enter the full serial number exactly as shown on the unit nameplate.</div>
+        ${decodeResultHtml}
+        ${state.brand==='Other / Not Sure'?`<div style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:8px;line-height:1.6">Look for a sticker inside the unit door showing month/year, or switch to manual year entry.</div>`:''}
+       </div>`;
+
+  const canSubmit = state.customer && state.address && state.dcName &&
+    (state.yearMode==='manual' ? !!state.manualYear : !!state.decoded);
+
+  return `
+  <div style="min-height:100vh;background:linear-gradient(160deg,var(--dark) 0%,var(--blue) 100%);padding:28px 20px 110px">
+    <div style="text-align:center;margin-bottom:22px" class="fade-up">
+      <div style="color:var(--orange);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px">Art Plumbing, AC & Electric</div>
+      <div style="color:white;font-size:24px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:4px">Oldest AC Contest</div>
+      <div style="color:rgba(255,255,255,0.38);font-size:12px">DC Field Entry · Ends June 30, 2026</div>
+    </div>
+    ${leaderHtml}
+    <div class="card fade-up" style="animation-delay:0.05s">
+      <div class="section-label">Step 1 · Client Info</div>
+      <div style="margin-bottom:14px">
+        <label class="field-label">Your Name (DC)</label>
+        <input class="field-input" type="text" id="dcNameInput" value="${esc(state.dcName)}" placeholder="e.g. Maria Gonzalez" autocomplete="name" />
+      </div>
+      <div style="margin-bottom:14px">
+        <label class="field-label">Client Name</label>
+        <input class="field-input" type="text" id="customerInput" value="${esc(state.customer)}" placeholder="e.g. John Smith" autocomplete="off" />
+      </div>
+      <div>
+        <label class="field-label">Property Address</label>
+        <input class="field-input" type="text" id="addressInput" value="${esc(state.address)}" placeholder="e.g. 123 Palm Ave, Miami" autocomplete="off" />
+      </div>
+    </div>
+    <div class="card fade-up" style="animation-delay:0.1s">
+      <div class="section-label">Step 2 · AC Manufacturing Date</div>
+      <div class="mode-toggle">
+        <button class="mode-btn ${state.yearMode==='manual'?'active':'inactive'}" onclick="setYearMode('manual')">📅 Enter Year</button>
+        <button class="mode-btn ${state.yearMode==='serial'?'active':'inactive'}" onclick="setYearMode('serial')">🔍 Decode Serial #</button>
+      </div>
+      ${yearSection}
+    </div>
+    <button class="btn-primary fade-up" style="animation-delay:0.15s" id="submitBtn" ${canSubmit&&!state.submitting?'':'disabled'}>
+      ${state.submitting?'Submitting...':'CHECK &amp; SUBMIT ENTRY →'}
+    </button>
+  </div>`;
+}
+
+// ── Result Screen ─────────────────────────────────────────────────────────────
+function renderResult() {
+  const {isWinner, entry, currentOldest} = state.result;
+  if (isWinner) {
+    return `
+    <div class="result-screen" style="background:linear-gradient(135deg,#0a4a0a 0%,#1a6b1a 50%,#0d5c0d 100%)">
+      <div style="font-size:80px;margin-bottom:10px" class="pop">🏆</div>
+      <div class="result-card result-winner fade-up">
+        <div style="color:var(--gold);font-size:12px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:12px">🎉 CURRENT CONTEST LEADER 🎉</div>
+        <div style="color:white;font-size:26px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:6px">${esc(entry.customer)}</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:20px">${esc(entry.address)}</div>
+        <div class="year-badge">
+          <div style="color:var(--dark);font-size:44px;font-weight:900;line-height:1;font-family:'Playfair Display',serif">${fmtAge(entry)}</div>
+          <div style="color:var(--dark);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-top:4px;opacity:0.7">${esc(entry.yearSource)}</div>
+        </div>
+        <div style="color:rgba(255,255,255,0.75);font-size:13px;line-height:1.7">
+          This client currently has the <strong style="color:var(--gold)">oldest verified AC</strong> in the contest!<br>Let them know they're in the lead.<br>
+          <span style="opacity:0.6;font-size:12px">Contest closes June 30, 2026.</span>
+        </div>
+      </div>
+      <button class="btn-secondary" style="margin-top:24px" onclick="resetField()">← New Entry</button>
+    </div>`;
+  } else {
+    return `
+    <div class="result-screen" style="background:linear-gradient(135deg,var(--dark) 0%,var(--blue) 100%)">
+      <div style="font-size:64px;margin-bottom:10px" class="pop">❄️</div>
+      <div class="result-card result-loser fade-up">
+        <div style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:10px">Entry Recorded</div>
+        <div style="color:white;font-size:22px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:16px">${esc(entry.customer)}</div>
+        <div class="compare-row">
+          <div class="compare-box" style="background:rgba(255,255,255,0.09)">
+            <div style="color:rgba(255,255,255,0.4);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Their AC</div>
+            <div style="color:white;font-size:24px;font-weight:800">${fmtAge(entry)}</div>
+          </div>
+          <div class="compare-box" style="background:rgba(255,107,0,0.2);border:1px solid rgba(255,107,0,0.35)">
+            <div style="color:var(--orange);font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">Leader</div>
+            <div style="color:var(--orange);font-size:24px;font-weight:800">${fmtAge(currentOldest)}</div>
+          </div>
+        </div>
+        <div class="coupon-box">
+          <div style="color:white;font-size:14px;font-weight:700;letter-spacing:0.5px;margin-bottom:6px">🎁 OFFER THE $1,000 COUPON</div>
+          <div style="color:rgba(255,255,255,0.88);font-size:13px;line-height:1.6">
+            Not the oldest in the contest — offer them <strong>$1,000 off</strong> a new energy-efficient system today!
+          </div>
+        </div>
+      </div>
+      <button class="btn-secondary" style="margin-top:24px" onclick="resetField()">← New Entry</button>
+    </div>`;
+  }
+}
+
+// ── Admin View ────────────────────────────────────────────────────────────────
+function renderAdmin() {
+  const oldest = getOldest(state.entries);
+  const sorted = [...state.entries].sort((a,b)=>{
+    const ay=parseInt(a.year)*100+(parseInt(a.month)||6);
+    const by=parseInt(b.year)*100+(parseInt(b.month)||6);
+    return ay-by;
+  });
+
+  const leaderCard = oldest ? `
+    <div class="leader-card-admin">
+      <div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">🏆 Current Leader</div>
+      <div style="font-size:24px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:4px">${esc(oldest.customer)}</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:14px">${esc(oldest.address)}</div>
+      <div class="stat-grid">
+        <div><div class="stat-label">AC Date</div><div class="stat-value" style="color:var(--gold)">${fmtAge(oldest)}</div></div>
+        <div><div class="stat-label">DC</div><div class="stat-value" style="color:rgba(255,255,255,0.85)">${esc(oldest.dcName)}</div></div>
+        <div><div class="stat-label">Submitted</div><div class="stat-value" style="color:rgba(255,255,255,0.85)">${fmtDate(oldest.submittedAt)}</div></div>
+      </div>
+      ${oldest.serial?`<div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:8px 12px;font-size:11px;color:rgba(255,255,255,0.45);margin-top:12px">Serial: ${esc(oldest.serial)} · ${esc(oldest.brand)} · ${esc(oldest.yearSource)}</div>`:''}
+    </div>` : `
+    <div style="background:white;border-radius:18px;padding:32px;margin-bottom:22px;text-align:center;color:#bbb;border:2px dashed #ddd;font-size:14px">
+      No entries yet. DCs will submit from the field.
+    </div>`;
+
+  const entryRows = sorted.map(entry=>{
+    const isLeader = oldest && entry.id===oldest.id;
+    return `
+    <div class="entry-row ${isLeader?'leader':''}">
+      <div class="entry-badge" style="background:${isLeader?'var(--green)':'var(--orange)'};font-size:${isLeader?'22':'13'}px">
+        ${isLeader?'🏆':`'${entry.year.slice(-2)}`}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;color:#1a1a2e;font-size:15px;margin-bottom:2px">${esc(entry.customer)}</div>
+        <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.address)}</div>
+        <div style="color:#bbb;font-size:11px;margin-top:2px">DC: ${esc(entry.dcName)} · ${fmtDate(entry.submittedAt)}${entry.serial?` · SN: ${esc(entry.serial)}`:''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${entry.month?`<div style="font-size:11px;color:#aaa">${MONTH_NAMES[parseInt(entry.month)-1]}</div>`:''}
+        <div style="font-size:22px;font-weight:900;color:${isLeader?'var(--green)':'#1a1a2e'};font-family:'Playfair Display',serif">${entry.year}</div>
+        ${isLeader?`<div style="color:var(--green);font-size:10px;font-weight:700">LEADER</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="admin-header">
+    <div style="color:var(--orange);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px">Art Plumbing, AC & Electric</div>
+    <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:4px">Contest Admin</div>
+    <div style="color:rgba(255,255,255,0.45);font-size:12px">${state.entries.length} total ${state.entries.length===1?'entry':'entries'} · ${syncIndicatorHtml()}</div>
+  </div>
+  <div class="admin-body">
+    ${leaderCard}
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#1a1a2e;letter-spacing:1px;text-transform:uppercase">All Entries</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="refreshEntries(false)" style="background:transparent;color:#0F3460;border:1px solid #0F3460;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer">↻ Refresh</button>
+        ${state.entries.length>0?`<button onclick="handleClearAll()" style="background:transparent;color:#cc3300;border:1px solid #cc3300;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer">Clear All</button>`:''}
+      </div>
+    </div>
+    ${entryRows||`<div style="text-align:center;color:#bbb;font-size:14px;padding:40px 0">Entries will appear here as DCs submit.</div>`}
+    <div style="margin-top:20px;text-align:center">
+      <button onclick="lockAdmin()" style="background:transparent;color:#aaa;border:none;font-size:12px;cursor:pointer">🔒 Lock Admin</button>
+    </div>
+  </div>`;
+}
+
+// ── Event Handlers ────────────────────────────────────────────────────────────
+function attachEvents() {
+  const bind = (id, key) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', e => { state[key]=e.target.value; });
+    el.addEventListener('change', e => { state[key]=e.target.value; });
+  };
+  bind('dcNameInput','dcName'); bind('customerInput','customer');
+  bind('addressInput','address'); bind('manualYear','manualYear');
+  bind('serialInput','serial');
+
+  const brandEl = document.getElementById('brandSelect');
+  if (brandEl) brandEl.addEventListener('change', e=>{state.brand=e.target.value;state.decoded=null;state.decodeError='';render();});
+
+  const decodeBtn = document.getElementById('decodeBtn');
+  if (decodeBtn) decodeBtn.addEventListener('click', handleDecode);
+
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) submitBtn.addEventListener('click', handleSubmit);
+
+  const adminPwInput = document.getElementById('adminPwInput');
+  if (adminPwInput) {
+    adminPwInput.addEventListener('input', e=>{state.adminPasswordInput=e.target.value;});
+    adminPwInput.addEventListener('keydown', e=>{ if(e.key==='Enter') handleAdminLogin(); });
+    setTimeout(()=>adminPwInput.focus(), 100);
+  }
+  const loginBtn = document.getElementById('adminLoginBtn');
+  if (loginBtn) loginBtn.addEventListener('click', handleAdminLogin);
+}
+
+function setYearMode(mode) { state.yearMode=mode; state.decoded=null; state.decodeError=''; render(); }
+
+function handleDecode() {
+  const res = decodeSerial(state.brand, state.serial);
+  if (res) { state.decoded=res; state.decodeError=''; }
+  else { state.decoded=null; state.decodeError="Couldn't auto-decode this serial. Try entering the year manually, or check the nameplate sticker."; }
+  render();
+}
+
+async function handleSubmit() {
+  const year = state.yearMode==='manual' ? parseInt(state.manualYear) : state.decoded?.year;
+  const month = state.yearMode==='serial' ? state.decoded?.month : null;
+  if (!year||!state.customer||!state.address||!state.dcName) return;
+
+  state.submitting=true; render();
+
+  const newEntry = {
+    customer: state.customer, address: state.address,
+    year: String(year), month: month?String(month):null,
+    dcName: state.dcName,
+    serial: state.yearMode==='serial' ? state.serial : null,
+    brand: state.yearMode==='serial' ? state.brand : null,
+    yearSource: state.yearMode==='serial' ? `Serial decoded — ${state.decoded?.note}` : 'Manual nameplate entry',
+  };
+
+  try {
+    const data = await postEntry(newEntry);
+    state.entries = data.entries;
+    const newest = getOldest(state.entries);
+    const isWinner = newest.id===data.entry.id;
+    state.result = { isWinner, entry: data.entry, currentOldest: newest };
+  } catch {
+    alert('Could not save entry — check your connection and try again.');
+  }
+  state.submitting=false; render();
+}
+
+function resetField() {
+  state.result=null; state.customer=''; state.address='';
+  state.manualYear=''; state.brand=''; state.serial='';
+  state.decoded=null; state.decodeError=''; state.yearMode='manual';
+  render();
+}
+
+async function handleClearAll() {
+  if (!confirm('Clear ALL contest entries? This cannot be undone.')) return;
+  await deleteAllEntries();
+  state.entries=[];
+  render();
+}
+
+function handleAdminLogin() {
+  if (state.adminPasswordInput===ADMIN_PASSWORD) {
+    state.adminUnlocked=true; state.adminPasswordError=false; state.adminPasswordInput='';
+    render();
+  } else {
+    state.adminPasswordError=true; state.adminPasswordInput=''; render();
+  }
+}
+
+function lockAdmin() {
+  state.adminUnlocked=false; state.view='field'; render();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+refreshEntries(false).then(startPolling);
+</script>
+</body>
+</html>
