@@ -692,7 +692,7 @@ function handleDecode() {
 async function handleSubmit() {
   const year = state.yearMode==='manual' ? parseInt(state.manualYear) : state.decoded?.year;
   const month = state.yearMode==='serial' ? state.decoded?.month : null;
-  if (!year||!state.customer||!state.address||!state.dcName) return;
+  if (!year||!state.customer||!state.jobNumber||!state.dcName) return;
 
   state.submitting=true; render();
 
