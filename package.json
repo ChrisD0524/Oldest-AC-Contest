@@ -1,0 +1,12 @@
+{
+  "name": "art-ac-contest-tracker",
+  "version": "1.0.0",
+  "description": "Art Plumbing Oldest AC Contest Tracker",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
