@@ -206,7 +206,7 @@ let state = {
   adminPasswordInput: '',
   adminPasswordError: false,
   dcName: '',
-  customer: '', address: '',
+  customer: '', jobNumber: '',
   yearMode: 'manual', manualYear: '',
   brand: '', serial: '',
   decoded: null, decodeError: '',
@@ -296,7 +296,7 @@ function patchLiveElements() {
         </div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;color:#1a1a2e;font-size:15px;margin-bottom:2px">${esc(entry.customer)}</div>
-          <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.address)}</div>
+          <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.jobNumber)}</div>
           <div style="color:#bbb;font-size:11px;margin-top:2px">DC: ${esc(entry.dcName)} · ${fmtDate(entry.submittedAt)}${entry.serial?` · SN: ${esc(entry.serial)}`:''}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
@@ -491,7 +491,7 @@ function renderField() {
         ${state.brand==='Other / Not Sure'?`<div style="color:rgba(255,255,255,0.3);font-size:11px;margin-top:8px;line-height:1.6">Look for a sticker inside the unit door showing month/year, or switch to manual year entry.</div>`:''}
        </div>`;
 
-  const canSubmit = state.customer && state.address && state.dcName &&
+  const canSubmit = state.customer && state.jobNumber && state.dcName &&
     (state.yearMode==='manual' ? !!state.manualYear : !!state.decoded);
 
   return `
@@ -513,8 +513,8 @@ function renderField() {
         <input class="field-input" type="text" id="customerInput" value="${esc(state.customer)}" placeholder="e.g. John Smith" autocomplete="off" />
       </div>
       <div>
-        <label class="field-label">Property Address</label>
-        <input class="field-input" type="text" id="addressInput" value="${esc(state.address)}" placeholder="e.g. 123 Palm Ave, Miami" autocomplete="off" />
+        <label class="field-label">Job Number</label>
+        <input class="field-input" type="text" id="addressInput" value="${esc(state.jobNumber)}" placeholder="e.g. 12345" autocomplete="off" />
       </div>
     </div>
     <div class="card fade-up" style="animation-delay:0.1s">
@@ -541,7 +541,7 @@ function renderResult() {
       <div class="result-card result-winner fade-up">
         <div style="color:var(--gold);font-size:12px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:12px">🎉 CURRENT CONTEST LEADER 🎉</div>
         <div style="color:white;font-size:26px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:6px">${esc(entry.customer)}</div>
-        <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:20px">${esc(entry.address)}</div>
+        <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:20px">${esc(entry.jobNumber)}</div>
         <div class="year-badge">
           <div style="color:var(--dark);font-size:44px;font-weight:900;line-height:1;font-family:'Playfair Display',serif">${fmtAge(entry)}</div>
           <div style="color:var(--dark);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;margin-top:4px;opacity:0.7">${esc(entry.yearSource)}</div>
@@ -595,7 +595,7 @@ function renderAdmin() {
     <div class="leader-card-admin">
       <div style="color:rgba(255,255,255,0.5);font-size:10px;letter-spacing:3px;text-transform:uppercase;margin-bottom:8px">🏆 Current Leader</div>
       <div style="font-size:24px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:4px">${esc(oldest.customer)}</div>
-      <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:14px">${esc(oldest.address)}</div>
+      <div style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:14px">${esc(oldest.jobNumber)}</div>
       <div class="stat-grid">
         <div><div class="stat-label">AC Date</div><div class="stat-value" style="color:var(--gold)">${fmtAge(oldest)}</div></div>
         <div><div class="stat-label">DC</div><div class="stat-value" style="color:rgba(255,255,255,0.85)">${esc(oldest.dcName)}</div></div>
@@ -616,7 +616,7 @@ function renderAdmin() {
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:700;color:#1a1a2e;font-size:15px;margin-bottom:2px">${esc(entry.customer)}</div>
-        <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.address)}</div>
+        <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.jobNumber)}</div>
         <div style="color:#bbb;font-size:11px;margin-top:2px">DC: ${esc(entry.dcName)} · ${fmtDate(entry.submittedAt)}${entry.serial?` · SN: ${esc(entry.serial)}`:''}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
@@ -658,7 +658,7 @@ function attachEvents() {
     el.addEventListener('change', e => { state[key]=e.target.value; });
   };
   bind('dcNameInput','dcName'); bind('customerInput','customer');
-  bind('addressInput','address'); bind('manualYear','manualYear');
+  bind('addressInput','jobNumber'); bind('manualYear','manualYear');
   bind('serialInput','serial');
 
   const brandEl = document.getElementById('brandSelect');
@@ -697,7 +697,7 @@ async function handleSubmit() {
   state.submitting=true; render();
 
   const newEntry = {
-    customer: state.customer, address: state.address,
+    customer: state.customer, jobNumber: state.jobNumber,
     year: String(year), month: month?String(month):null,
     dcName: state.dcName,
     serial: state.yearMode==='serial' ? state.serial : null,
@@ -718,7 +718,7 @@ async function handleSubmit() {
 }
 
 function resetField() {
-  state.result=null; state.customer=''; state.address='';
+  state.result=null; state.customer=''; state.jobNumber='';
   state.manualYear=''; state.brand=''; state.serial='';
   state.decoded=null; state.decodeError=''; state.yearMode='manual';
   render();
