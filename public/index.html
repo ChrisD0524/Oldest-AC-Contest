@@ -473,7 +473,7 @@ function renderField() {
   const yearSection = state.yearMode==='manual'
     ? `<div>
         <label class="field-label">Year on Nameplate</label>
-        <input class="field-input" type="number" id="manualYear" min="1960" max="2015" value="${esc(state.manualYear)}" placeholder="e.g. 1988" inputmode="numeric" />
+        <input class="field-input" type="number" id="manualYear" min="1960" max="2015" placeholder="e.g. 1988" inputmode="numeric" />
         <div style="color:rgba(255,255,255,0.28);font-size:11px;margin-top:6px">Found on the unit nameplate sticker</div>
        </div>`
     : `<div>
