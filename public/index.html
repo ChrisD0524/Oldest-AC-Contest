@@ -250,7 +250,64 @@ async function refreshEntries(silent) {
   } else {
     state.syncStatus = 'error';
   }
-  render();
+  if (silent && state.loaded) {
+    // Silent poll: patch only the dynamic parts, no full re-render
+    patchLiveElements();
+  } else {
+    render();
+  }
+}
+
+function patchLiveElements() {
+  // Patch sync indicators
+  document.querySelectorAll('[data-live="sync"]').forEach(el => {
+    el.innerHTML = syncIndicatorHtml();
+  });
+  // Patch entry counts
+  const count = state.entries.length;
+  const label = count === 1 ? 'entry' : 'entries';
+  document.querySelectorAll('[data-live="count"]').forEach(el => {
+    el.textContent = count + ' total ' + label;
+  });
+  // Patch oldest AC card
+  const oldest = getOldest(state.entries);
+  document.querySelectorAll('[data-live="oldest"]').forEach(el => {
+    if (oldest) {
+      el.innerHTML = `<span style="font-size:13px;color:rgba(255,255,255,0.5);letter-spacing:1px;text-transform:uppercase;font-weight:700">Current Leader</span>
+        <div style="font-size:22px;font-weight:800;color:var(--gold);margin:4px 0">${esc(oldest.customer)}</div>
+        <div style="font-size:15px;color:rgba(255,255,255,0.7)">${fmtAge(oldest)} &mdash; ${esc(oldest.dc||'')}</div>`;
+    }
+  });
+  // Patch admin entries list if visible
+  const adminEntries = document.querySelector('[data-live="admin-entries"]');
+  if (adminEntries) {
+    const oldest = getOldest(state.entries);
+    const sorted = [...state.entries].sort((a,b)=>{
+      const ay = parseInt(a.year)*100+(parseInt(a.month)||6);
+      const by2 = parseInt(b.year)*100+(parseInt(b.month)||6);
+      return ay - by2;
+    });
+    const entryRows = sorted.map(entry=>{
+      const isLeader = oldest && entry.id===oldest.id;
+      return `
+      <div class="entry-row ${isLeader?'leader':''}">
+        <div class="entry-badge" style="background:${isLeader?'var(--green)':'var(--orange)'};font-size:${isLeader?'22':'13'}px">
+          ${isLeader?'🏆':`'${entry.year.slice(-2)}`}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:#1a1a2e;font-size:15px;margin-bottom:2px">${esc(entry.customer)}</div>
+          <div style="color:#888;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(entry.address)}</div>
+          <div style="color:#bbb;font-size:11px;margin-top:2px">DC: ${esc(entry.dcName)} · ${fmtDate(entry.submittedAt)}${entry.serial?` · SN: ${esc(entry.serial)}`:''}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          ${entry.month?`<div style="font-size:11px;color:#aaa">${MONTH_NAMES[parseInt(entry.month)-1]}</div>`:''}
+          <div style="font-size:22px;font-weight:900;color:${isLeader?'var(--green)':'#1a1a2e'};font-family:'Playfair Display',serif">${entry.year}</div>
+          ${isLeader?`<div style="color:var(--green);font-size:10px;font-weight:700">LEADER</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+    adminEntries.innerHTML = entryRows || `<div style="text-align:center;color:#bbb;font-size:14px;padding:40px 0">Entries will appear here as DCs submit.</div>`;
+  }
 }
 
 function startPolling() {
@@ -392,13 +449,13 @@ function renderField() {
   const leaderHtml = oldest
     ? `<div class="leader-banner">
         <div style="font-size:28px">🏆</div>
-        <div>
+        <div data-live="oldest">
           <div style="color:var(--gold);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:3px">Current Leader to Beat</div>
           <div style="color:white;font-size:15px;font-weight:700">${esc(oldest.customer)} — <span style="color:var(--gold)">${fmtAge(oldest)}</span></div>
-          <div style="color:rgba(255,255,255,0.4);font-size:11px">${state.entries.length} total ${state.entries.length===1?'entry':'entries'} · ${syncIndicatorHtml()}</div>
+          <div style="color:rgba(255,255,255,0.4);font-size:11px"><span data-live="count">${state.entries.length} total ${state.entries.length===1?'entry':'entries'}</span> · <span data-live="sync">${syncIndicatorHtml()}</span></div>
         </div>
        </div>`
-    : `<div class="no-entries-banner">No entries yet — be the first! 🌟<br><span style="font-size:11px;opacity:0.6">${syncIndicatorHtml()}</span></div>`;
+    : `<div class="no-entries-banner">No entries yet — be the first! 🌟<br><span style="font-size:11px;opacity:0.6"><span data-live="sync">${syncIndicatorHtml()}</span></span></div>`;
 
   const brandOptions = BRANDS.map(b=>`<option value="${esc(b)}" ${state.brand===b?'selected':''}>${esc(b)}</option>`).join('');
 
@@ -574,7 +631,7 @@ function renderAdmin() {
   <div class="admin-header">
     <div style="color:var(--orange);font-size:11px;font-weight:700;letter-spacing:4px;text-transform:uppercase;margin-bottom:6px">Art Plumbing, AC & Electric</div>
     <div style="font-size:22px;font-weight:700;font-family:'Playfair Display',serif;margin-bottom:4px">Contest Admin</div>
-    <div style="color:rgba(255,255,255,0.45);font-size:12px">${state.entries.length} total ${state.entries.length===1?'entry':'entries'} · ${syncIndicatorHtml()}</div>
+    <div style="color:rgba(255,255,255,0.45);font-size:12px"><span data-live="count">${state.entries.length} total ${state.entries.length===1?'entry':'entries'}</span> · <span data-live="sync">${syncIndicatorHtml()}</span></div>
   </div>
   <div class="admin-body">
     ${leaderCard}
@@ -585,7 +642,7 @@ function renderAdmin() {
         ${state.entries.length>0?`<button onclick="handleClearAll()" style="background:transparent;color:#cc3300;border:1px solid #cc3300;border-radius:8px;padding:6px 14px;font-size:12px;cursor:pointer">Clear All</button>`:''}
       </div>
     </div>
-    ${entryRows||`<div style="text-align:center;color:#bbb;font-size:14px;padding:40px 0">Entries will appear here as DCs submit.</div>`}
+    <div data-live="admin-entries">${entryRows||`<div style="text-align:center;color:#bbb;font-size:14px;padding:40px 0">Entries will appear here as DCs submit.</div>`}</div>
     <div style="margin-top:20px;text-align:center">
       <button onclick="lockAdmin()" style="background:transparent;color:#aaa;border:none;font-size:12px;cursor:pointer">🔒 Lock Admin</button>
     </div>
