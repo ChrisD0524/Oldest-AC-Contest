@@ -650,21 +650,24 @@ function renderAdmin() {
 }
 
 // ── Event Handlers ────────────────────────────────────────────────────────────
+function updateSubmitBtn() {
+  const btn = document.getElementById('submitBtn');
+  if (!btn) return;
+  const canSubmit = state.customer && state.jobNumber && state.dcName &&
+    (state.yearMode==='manual' ? !!state.manualYear : !!state.decoded);
+  btn.disabled = !(canSubmit && !state.submitting);
+}
+
 function attachEvents() {
   const bind = (id, key) => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.addEventListener('input', e => { state[key]=e.target.value; });
-    el.addEventListener('change', e => { state[key]=e.target.value; });
+    el.addEventListener('input', e => { state[key]=e.target.value; updateSubmitBtn(); });
+    el.addEventListener('change', e => { state[key]=e.target.value; updateSubmitBtn(); });
   };
   bind('dcNameInput','dcName'); bind('customerInput','customer');
   bind('addressInput','jobNumber'); bind('serialInput','serial');
-  // manualYear needs to trigger re-render so submit button enables
-  const myEl = document.getElementById('manualYear');
-  if (myEl) {
-    myEl.addEventListener('input', e => { state.manualYear = e.target.value; render(); });
-    myEl.addEventListener('change', e => { state.manualYear = e.target.value; render(); });
-  }
+  bind('manualYear','manualYear');
 
   const brandEl = document.getElementById('brandSelect');
   if (brandEl) brandEl.addEventListener('change', e=>{state.brand=e.target.value;state.decoded=null;state.decodeError='';render();});
