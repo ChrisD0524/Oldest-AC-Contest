@@ -658,8 +658,13 @@ function attachEvents() {
     el.addEventListener('change', e => { state[key]=e.target.value; });
   };
   bind('dcNameInput','dcName'); bind('customerInput','customer');
-  bind('addressInput','jobNumber'); bind('manualYear','manualYear');
-  bind('serialInput','serial');
+  bind('addressInput','jobNumber'); bind('serialInput','serial');
+  // manualYear needs to trigger re-render so submit button enables
+  const myEl = document.getElementById('manualYear');
+  if (myEl) {
+    myEl.addEventListener('input', e => { state.manualYear = e.target.value; render(); });
+    myEl.addEventListener('change', e => { state.manualYear = e.target.value; render(); });
+  }
 
   const brandEl = document.getElementById('brandSelect');
   if (brandEl) brandEl.addEventListener('change', e=>{state.brand=e.target.value;state.decoded=null;state.decodeError='';render();});
